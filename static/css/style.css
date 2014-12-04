@@ -1,0 +1,78 @@
+body {
+
+}
+.ui-section {
+	position: fixed;
+	top: 0;
+	height: 100%;
+	padding:  12.5% 2em 12.5% 2em;
+}
+
+#poem-text {
+	left: 0;
+	overflow: scroll;
+	width: 66%;
+}
+
+#title { 
+	position: absolute;
+	display: block;
+	height: 2em;
+
+}
+
+#author{ 
+	position: absolute;
+	display: block;
+	height: 1em;
+
+}
+
+#lines {
+	position: absolute;
+	display: block;
+	overflow-y: scroll;
+	width: 100%;
+}
+
+#lines li {
+	display: relative;
+	height: 1em;
+	float: left;
+	padding: 0 .5em 0 .5em;
+	margin-bottom: 0.5em;
+	font-size: 0.9em;
+}
+
+#poem-visualiation{
+	right: 0;
+	width: 33%;
+}
+
+.visualization{
+	position: absolute;
+	width: 320px;
+	height: 240px;
+	margin: 0 auto;
+	display: none;
+	top: calc(50% - 120px);
+}
+
+.visualization .placeholder {
+	z-index: 1;
+	display: block;
+}
+
+#camera{
+	z-index: 100;
+}
+
+#frames{
+	z-index: 100;
+}
+
+
+
+.current-visualization{
+	display: block !important;
+}
