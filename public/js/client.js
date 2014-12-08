@@ -1,3 +1,140 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var async = require('async');
+console.log("Initializing...")
+// Initialize Webcam.js
+Webcam.set({
+  width: 320,
+  height: 240,
+  image_format: 'jpeg',
+  jpeg_quality: 90
+});
+Webcam.attach('#camera');
+console.log("Webcam Initialized")
+// Define poem data structure
+var poem = {
+  title: "Illusion and Reality",
+  author: "kabir",
+  lines: {
+    "What is seen is not the Truth": [],
+    "What is cannot be said": [],
+    "Trust comes not without seeing": [],
+    "Nor understanding without words": [],
+    "The wise comprehends with knowledge": [],
+    "To the ignorant it is but a wonder": [],
+    "Some worship the formless God": [],
+    "Some worship His various forms": [],
+    "In what way He is beyond these attributes": [],
+    "Only the Knower knows": [],
+    "That music cannot be written": [],
+    "How can then be the notes": [],
+    "Says Kabir, awareness alone will overcome illusion": []
+  }
+}
+
+// Render poem
+function render_poem(poem) {
+  console.log("Rendering " + poem.title)
+  document.getElementById('title').innerHTML = poem.title;
+  document.getElementById('author').innerHTML = poem.author;
+  document.getElementById('lines').innerHTML = Object.keys(poem.lines).map(render_line).join('\n');
+
+  function render_line(line, i) {
+    return '<li class="poem-line" id="line-' + i + '">' + line + '</li>';
+  }
+}
+
+function mk_visualizer(ops) {
+  console.log("Initializing vizualization for poem " + poem.title);
+  var self = this, count, interval, visualizer;
+  count = ops.count;
+  interval = ops.interval;
+  visualizer = function(poem, line_selector){
+    Array.prototype.slice.call(document.querySelectorAll(line_selector)).forEach(function set_handler(line) {
+      line.addEventListener('click', frame_handler);
+    });
+    function frame_handler(evnt) {
+      console.log("Frame handler called")
+      var line_img_uris = poem.lines[evnt.target.innerHTML];
+      if (!line_img_uris.length) { // take snapshot and get image data
+        snap_frames(line_img_uris, function(err, uris) {
+          if (err) {
+            return console.log(err)
+          }
+          console.log("Gathered images:" + JSON.stringify(uris));
+        })
+      }
+    }
+  }
+
+  function snap_frames(uris, callback) {
+    var nxt;
+    console.log("Snapping frames");
+    Webcam.snap(function(data_uri) {
+      uris.push(data_uri);
+    });
+    if (uris.length < count) {
+      nxt = snap_frames.bind(null, uris, callback);
+      setTimeout(nxt, interval);
+    } else {
+      callback(null, uris);
+    }
+  }
+
+  return visualizer;
+}
+
+
+
+
+function mk_renderer(ops) {
+  var container, interval, render;
+  container = ops.container;
+  interval = ops.interval;
+  return function render(line, callback) {
+    console.log("Rendering line " + line);
+    document.getElementById("current-line").innerHTML = line;
+    var self = this,
+        uris, count, loop;
+    console.log(line);
+    uris = poem.lines[line];
+    if (!uris) {
+      return callback("uris not found");
+    }
+    async.eachSeries(uris, function set_img_render(uri, callback) {
+      render_img(uri);
+      setTimeout(callback, interval);
+    }, callback)
+
+    function render_img(uri) {
+      console.log("Rendering img@" + uri);
+      container.innerHTML = '<img src="' + uri + '"/>';
+    }
+  }
+}
+
+render_poem(poem);
+
+// Init Picture taking/saving/viewing funcs
+
+var visualize = mk_visualizer({
+  count: 3,
+  interval: 1000,
+});
+
+visualize(poem, '.poem-line');
+
+var render = mk_renderer({
+  container: document.getElementById('output-frames'),
+  interval: 1000,
+});
+document.getElementById('play').addEventListener('click', function (evnt){
+  var lines = Object.keys(poem.lines);
+  async.eachSeries(lines, render, function(err){ if (err) { console.log(err); }});
+});
+
+
+},{"async":2}],2:[function(require,module,exports){
+(function (process){
 /*!
  * async
  * https://github.com/caolan/async
@@ -1121,3 +1258,94 @@
     }
 
 }());
+
+}).call(this,require('_process'))
+},{"_process":3}],3:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canMutationObserver = typeof window !== 'undefined'
+    && window.MutationObserver;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    var queue = [];
+
+    if (canMutationObserver) {
+        var hiddenDiv = document.createElement("div");
+        var observer = new MutationObserver(function () {
+            var queueList = queue.slice();
+            queue.length = 0;
+            queueList.forEach(function (fn) {
+                fn();
+            });
+        });
+
+        observer.observe(hiddenDiv, { attributes: true });
+
+        return function nextTick(fn) {
+            if (!queue.length) {
+                hiddenDiv.setAttribute('yes', 'no');
+            }
+            queue.push(fn);
+        };
+    }
+
+    if (canPost) {
+        window.addEventListener('message', function (ev) {
+            var source = ev.source;
+            if ((source === window || source === null) && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}]},{},[1]);

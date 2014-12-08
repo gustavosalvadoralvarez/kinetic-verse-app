@@ -3,7 +3,16 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Kinetic Verse Test Page</title>
-
+        <style>
+            #poem-text {
+                position: relative;
+                float: left;
+            }
+            #poem-visualization {
+                position: relative;
+                float: right;
+            }
+        </style>
 		<script type="text/javascript" src="static/js/webcam.js"></script>
 
 	</head>
@@ -13,13 +22,13 @@
 			<h3 class="text" id="author"></h3>
 			<ul class="text" id="lines"></ul>
 		</section>
-
 		<section class="ui-section" id="poem-visualization">
-			<div class="visualization" id="camera"></div>	
+			<div class="visualization" id="camera"></div>
 			<div class="visualization" id="frames">Your captured image will appear here...</div>
 		</section>
-		
-
+        <button id="play">Play Poem</button>
+        <div id="current-line"></div>
+        <div id="output-frames">Output Here</div>
 		<script src="static/js/client.js"></script>
 	</body>
 </html>
