@@ -8,7 +8,7 @@
 7 verbose unsafe-perm in lifecycle true
 8 info kv_client@0.0.0 Failed to exec prestart script
 9 error kv_client@0.0.0 prestart: `browserify ./client.js > ./static/js/client.js`
-9 error Exit status 126
+9 error Exit status 2
 10 error Failed at the kv_client@0.0.0 prestart script.
 10 error This is most likely a problem with the kv_client package,
 10 error not with npm itself.
